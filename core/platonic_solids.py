@@ -102,7 +102,7 @@ def edges_direction_in_face(face):
 
     For each edge (u, v) in the ordered vertex list of the face,
     the direction is assigned +1 if (u < v) matches the traversal order,
-    and −1 otherwise. The edge is stored as a sorted tuple (min, max).
+    and -1 otherwise. The edge is stored as a sorted tuple (min, max).
 
     Parameters
     ----------
@@ -112,7 +112,7 @@ def edges_direction_in_face(face):
     Returns
     -------
     dir_map : dict[tuple[int,int], int]
-        Mapping from edge (min, max) → orientation (+1 or −1).
+        Mapping from edge (min, max) → orientation (+1 or -1).
 
     Notes
     -----
@@ -186,10 +186,10 @@ def get_platonic_solids():
     Construct the complete topological data for all five Platonic solids.
 
     Each solid is returned as a tuple (S0, S1, S2, S3), where:
-        S0 — list of vertices,
-        S1 — list of edges (2-cells),
-        S2 — list of faces (3-cells),
-        S3 — list containing the single 3D volume (4-cell equivalent).
+        S0: list of vertices,
+        S1: list of edges (2-cells),
+        S2: list of faces (3-cells),
+        S3: list containing the single 3D volume (4-cell equivalent).
 
     The orientation of all faces is made globally consistent using
     `orient_faces_adjacency`.

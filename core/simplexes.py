@@ -1,6 +1,6 @@
 """
 =========================================================
-Simplex Construction and Boundary–Cycle Matrix Utilities
+Simplex Construction and Boundary-Cycle Matrix Utilities
 =========================================================
 
 This module provides functions for generating oriented simplicial complexes
@@ -20,12 +20,7 @@ Functions
     tables suitable for supplementary documentation.
 """
 
-
-import numpy as np
-from core.complexes import (
-    generate_all_B_by_definition,
-    get_C_from_B,
-)
+from core.complexes import generate_all_B_by_definition, get_C_from_B
 from itertools import combinations
 
 

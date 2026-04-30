@@ -1,6 +1,6 @@
 """
 =========================================================
-Topological Kuramoto Model — Core Dynamical Routines
+Topological Kuramoto Model -- Core Dynamical Routines
 =========================================================
 
 This module implements the dynamical core of the topological Kuramoto model.
@@ -12,12 +12,12 @@ Functions
 
 - get_psi_plus_sp, get_psi_minus_sp:
     Compute stationary particular solutions psi_plus and psi_minus for given boundary and
-    coupling matrices (Eqs. 13–14).
+    coupling matrices (Eqs. 18).
 - f_n_plus_one, f_n_minus_one:
-    Nonlinear elementwise coupling functions implementing the arcsin / (pi–arcsin)
-    partition structure (Eq. 20).
+    Nonlinear elementwise coupling functions implementing the arcsin / (pi-arcsin)
+    partition structure (Eq. 21-22).
 - f_zeta_partitioned_sum_nd:
-    Evaluate the residual sums in Eq. 22 for general n-dimensional complexes.
+    Evaluate the residual sums in Eq. 23 for general n-dimensional complexes.
 - build_partitioned_root_problem:
     Construct the nonlinear residual functions f(zeta) = 0 for arbitrary partitions.
 - generate_z_vectors_from_C:
@@ -55,10 +55,10 @@ from scipy.optimize import root as root_solver
 from core.complexes import  generate_all_B_by_definition, compute_boundary_matrices, compute_kernel_sp, get_C_from_B, get_K_from_B
 from core.simplexes import generate_simplices
 
-# --- helper functions for dynamics ---
+# Helper functions for dynamics 
 
 def get_psi_plus_sp(B_np1, K_np1, omega):
-    """Eq 13"""
+    """Eq 19"""
     L_down = B_np1.T @ B_np1
     lhs = L_down @ K_np1
     rhs = B_np1.T @ omega
@@ -66,7 +66,7 @@ def get_psi_plus_sp(B_np1, K_np1, omega):
     return psi_sp
 
 def get_psi_minus_sp(B_n, K_n, omega):
-    """Eq 14"""
+    """Eq 19"""
     L_up = B_n @ B_n.T
     lhs = L_up @ K_n
     rhs = B_n @ omega
@@ -74,7 +74,7 @@ def get_psi_minus_sp(B_n, K_n, omega):
     return psi_sp
 
 def f_n_minus_one(psi_minus, S_plus, S_minus):
-    """Eq 20"""
+    """Eq 21-22"""
     if np.any(np.abs(psi_minus) > 1):
         return np.full_like(psi_minus, np.nan)
     
@@ -85,7 +85,7 @@ def f_n_minus_one(psi_minus, S_plus, S_minus):
     return f
 
 def f_n_plus_one(psi_plus, S_plus, S_minus):
-    """Eq 20"""
+    """Eq 21-22"""
     if np.any(np.abs(psi_plus) > 1):
         return np.full_like(psi_plus, np.nan)
     
@@ -97,10 +97,8 @@ def f_n_plus_one(psi_plus, S_plus, S_minus):
     return f
 
 
-def f_zeta_partitioned_sum_nd(psi_np1_sp, psi_n_sp, zeta_np1_vec, zeta_n_vec, 
-                               S0_np1, S0_n, S2_np1, S2_n, 
-                               K_n, K_np1, C_n, C_np1):
-    """LHS of Eq 22."""
+def f_zeta_partitioned_sum_nd(psi_np1_sp, psi_n_sp, zeta_np1_vec, zeta_n_vec, S0_np1, S0_n, S2_np1, S2_n, K_n, K_np1, C_n, C_np1):
+    """LHS of Eq 23."""
     C_n = C_n.reshape(-1, 1) if C_n.ndim == 1 else C_n
     C_np1 = C_np1.reshape(-1, 1) if C_np1.ndim == 1 else C_np1
 
@@ -121,12 +119,7 @@ def f_zeta_partitioned_sum_nd(psi_np1_sp, psi_n_sp, zeta_np1_vec, zeta_n_vec,
 
 def compute_zeta_ranges_double(psi_plus_sp, psi_minus_sp, K1, K2, C1, C2):
     """
-    Compute the admissible zeta-ranges for psi_plus and psi_minus given the constraint |psi| <= 1 (Eq. 18).
-
-    Returns
-    -------
-    (zeta_plus_min, zeta_plus_max),
-    (zeta_minus_min, zeta_minus_max)
+    Compute the admissible zeta-ranges for psi_plus and psi_minus given the constraint |psi| <= 1 (Eq. 20).
     """
     psi_plus_sp = psi_plus_sp.flatten()
     psi_minus_sp = psi_minus_sp.flatten()
@@ -145,11 +138,10 @@ def compute_zeta_ranges_double(psi_plus_sp, psi_minus_sp, K1, K2, C1, C2):
     return (zp_min, zp_max), (zm_min, zm_max)
 
 
-
 def generate_z_vectors_from_C(C_n, C_np1):
     """
     Generate winding number candidate z_n and z_np1 vectors using the strict elementwise bound
-    from Eq. (23): |z_i| < (1/4) * sum_j |C_ij|.
+    from Eq. (24): |z_i| < (1/4) * sum_j |C_ij|.
     Each z_i gets its own bound u_i, so we avoid a single global max.
     """
 
@@ -185,16 +177,11 @@ def generate_z_vectors_from_C(C_n, C_np1):
 
     return z_n_vecs, z_np1_vecs
 
-# --- equation solver for finding phase-locked solutions ---
+# Equation solver for finding phase-locked solutions
 
-def build_partitioned_root_problem(
-    psi_np1_sp, psi_n_sp,
-    z_np1, z_n,
-    S0_np1, S0_n, S2_np1, S2_n,
-    K_n, K_np1, C_n, C_np1
-):
+def build_partitioned_root_problem(psi_np1_sp, psi_n_sp, z_np1, z_n, S0_np1, S0_n, S2_np1, S2_n, K_n, K_np1, C_n, C_np1):
     """
-    Eq22: Constructs a nonlinear residual function f(zeta)
+    Eq23: Constructs a nonlinear residual function f(zeta)
     for identifying phase-locked states in the topological Kuramoto model.
     This function acts as a "problem builder" for nonlinear solvers (e.g. `scipy.root`),
 
@@ -218,7 +205,7 @@ def build_partitioned_root_problem(
         for each independent harmonic mode.
     S0_np1, S0_n, S2_np1, S2_n : list[int]
         Index partitions defining local nonlinear interaction rules for
-        psi_plus and psi_minus, i.e. which components use arcsin(psi) vs. pi – arcsin(psi).
+        psi_plus and psi_minus, i.e. which components use arcsin(psi) vs. pi - arcsin(psi).
     K_n, K_np1 : np.ndarray
         Coupling matrices on dimensions n and n+1.
     C_n, C_np1 : np.ndarray
@@ -229,17 +216,17 @@ def build_partitioned_root_problem(
     -------
     func : callable
         Residual function f(zeta_vec) whose root corresponds to a phase-locked state.
-        The function automatically enforces |psi| ≤ 1, returning NaN outside the domain.
+        The function automatically enforces |psi| <= 1, returning NaN outside the domain.
     target : np.ndarray
         The target vector 2pi*z containing the integer winding constraints.
     zeta0 : np.ndarray
         Initial guess for the solver (zeros).
     mode : str
         Indicates which subproblem was constructed:
-        'only_n'   → only psi_minus (e.g. ring case)
-        'only_np1' → only psi_plus
-        'both'     → both psi_minus and psi_plus
-        'none'     → no valid root problem (empty matrices)
+        'only_n': only psi_minus (e.g. ring case)
+        'only_np1': only psi_plus
+        'both': both psi_minus and psi_plus
+        'none': no valid root problem (empty matrices)
     """
 
     C_n = C_n.reshape(-1, 1) if C_n.ndim == 1 else C_n
@@ -304,7 +291,7 @@ def find_what_works_nd(S0_np1, S0_n, S2_np1, S2_n, B_n, B_np1, K_n, K_np1, C_n, 
 
     This routine automatically builds the correct residual function(s) via
     `build_partitioned_root_problem`, applies numerical root-finding,
-    and collects all physically valid stationary states (|psi| ≤ 1).
+    and collects all physically valid stationary states (|psi| <= 1).
 
     Parameters
     ----------
@@ -312,7 +299,7 @@ def find_what_works_nd(S0_np1, S0_n, S2_np1, S2_n, B_n, B_np1, K_n, K_np1, C_n, 
         Partition index sets defining the nonlinear interaction rules
         for psi_plus (dimension n+1) and psi_minus (dimension n).
         Each pair (S0, S2) corresponds to domains where arcsin(psi)
-        or pi − arcsin(psi) apply.
+        or pi - arcsin(psi) apply.
     B_n, B_np1 : np.ndarray
         Boundary matrices coupling n- and (n+1)-cells in the complex.
     K_n, K_np1 : np.ndarray
@@ -338,14 +325,14 @@ def find_what_works_nd(S0_np1, S0_n, S2_np1, S2_n, B_n, B_np1, K_n, K_np1, C_n, 
     generated by `generate_z_vectors_from_C`, constructing for each a
     residual function f(zeta) = 0.
 
-    For each case, the nonlinear equation is solved using the Levenberg–
+    For each case, the nonlinear equation is solved using the Levenberg-
       Marquardt method (`scipy.root(method='lm')`).
 
     Solutions are accepted only if:
-        – the solver converged (`result.success`)
-        – no NaNs appear in f(zeta)
-        – the residual norm ||f(zeta)|| < tol
-        – |psi| <= 1 for all components
+        - the solver converged (`result.success`)
+        - no NaNs appear in f(zeta)
+        - the residual norm ||f(zeta)|| < tol
+        - |psi| <= 1 for all components
 
     """
     roots = []
@@ -366,12 +353,8 @@ def find_what_works_nd(S0_np1, S0_n, S2_np1, S2_n, B_n, B_np1, K_n, K_np1, C_n, 
         for z_n in z_n_vecs:
 
             # Construct the appropriate nonlinear problem
-            func, target, zeta0, mode = build_partitioned_root_problem(
-                psi_np1_sp, psi_n_sp,
-                z_np1, z_n,
-                S0_np1, S0_n, S2_np1, S2_n,
-                K_n, K_np1, C_n, C_np1
-            )
+            func, target, zeta0, mode = build_partitioned_root_problem(psi_np1_sp, psi_n_sp, z_np1, z_n, S0_np1, S0_n, S2_np1, S2_n,
+                                                                       K_n, K_np1, C_n, C_np1)
 
             if mode == 'none':
                 continue
@@ -379,9 +362,7 @@ def find_what_works_nd(S0_np1, S0_n, S2_np1, S2_n, B_n, B_np1, K_n, K_np1, C_n, 
             result = root_solver(func, x0=zeta0, method='lm', options={'xtol': 1e-10, 'ftol': 1e-10})
             fun_norm = np.linalg.norm(result.fun) if result.success else np.nan
 
-            #print(f"z_np1: {z_np1}, z_n: {z_n}, result: {result.success}, fun norm: {fun_norm}, mode: {mode}")
-
-            # accept valid roots
+            # Accept valid roots
             if result.success and not np.isnan(result.fun).any() and fun_norm < tol:
                 if mode == 'only_np1':
                     roots.append((z_np1, np.array([]), result.x, np.array([])))
@@ -398,7 +379,7 @@ def find_what_works_nd(S0_np1, S0_n, S2_np1, S2_n, B_n, B_np1, K_n, K_np1, C_n, 
 
     return roots
 
-# --- stability analysis ---
+# Stability analysis
 
 def is_jacobian_stable(J, tol=1e-9):
     """
@@ -415,13 +396,9 @@ def is_jacobian_stable(J, tol=1e-9):
     return np.all(eigvals <= 0)
 
 
-def check_stable_jacobians(
-    roots, omega,
-    B_n, B_np1, K_n, K_np1, C_n, C_np1,
-    S0_plus_c, S0_minus_c, S2_plus_c, S2_minus_c):
+def check_stable_jacobians(roots, omega, B_n, B_np1, K_n, K_np1, C_n, C_np1, S0_plus_c, S0_minus_c, S2_plus_c, S2_minus_c):
     """
-    
-    Evaluate the **linear stability** of each identified phase-locked state
+    Evaluate the linear stability of each identified phase-locked state
     by computing the Jacobian matrices of the topological Kuramoto dynamics.
 
     For every root (z_plus, z_minus, zeta_plus, zeta_minus) returned by `find_what_works_nd`, the
@@ -443,16 +420,16 @@ def check_stable_jacobians(
         Cycle matrices defining the harmonic basis of the complex.
     S0_plus_c, S0_minus_c, S2_plus_c, S2_minus_c : list[int]
         Index partitions specifying which psi components enter the nonlinear
-        interaction as arcsin(psi) versus pi − arcsin(psi), for both psi_minus and psi_plus.
+        interaction as arcsin(psi) versus pi - arcsin(psi), for both psi_minus and psi_plus.
 
     Returns
     -------
     stable_indices : list[int]
-        Indices of stable solutions (all non-zero eigenvalues ≤ 0).
+        Indices of stable solutions (all non-zero eigenvalues <= 0).
     all_J1s : list[np.ndarray or None]
-        Jacobians J1 = –Bn.T Kn diag(cos theta_minus) Bn for each root (or None if skipped).
+        Jacobians J1 = -Bn.T Kn diag(cos theta_minus) Bn for each root (or None if skipped).
     all_J2s : list[np.ndarray or None]
-        Jacobians J2 = –Bnp1 Knp1 diag(cos theta_plus) Bnp1.T for each root (or None if skipped).
+        Jacobians J2 = -Bnp1 Knp1 diag(cos theta_plus) Bnp1.T for each root (or None if skipped).
 
     Notes
     -----
@@ -507,10 +484,7 @@ def check_stable_jacobians(
 
     return stable_indices, all_J1s, all_J2s
 
-def check_cos_theta(
-    roots, omega,
-    B_n, B_np1, K_n, K_np1, C_n, C_np1,
-    S0_plus_c, S0_minus_c, S2_plus_c, S2_minus_c):
+def check_cos_theta(roots, omega, B_n, B_np1, K_n, K_np1, C_n, C_np1, S0_plus_c, S0_minus_c, S2_plus_c, S2_minus_c):
     """
     For each root, check if all cos(theta) values are positive.
     If a kernel is empty, skip checking its corresponding condition.
@@ -556,7 +530,7 @@ def check_cos_theta(
 
     return positive_indices, all_CT1s, all_CT2s
 
-# --- calculate partitions: all and only all-plus ---
+# Calculate partitions: all and only all-plus
 
 def all_partitions(n):
     """
@@ -588,7 +562,7 @@ def get_all_plus_partitions(S_n_minus_one, S_n_plus_one):
     return S_nm1_plus, S_nm1_minus, S_np1_plus, S_np1_minus
 
 
-# --- function that unifies it all into a comprehensive analysis of all-plus solutions ---
+# Function that unifies it all into a comprehensive analysis of all-plus solutions
 
 def find_all_plus_omega_zero_solutions(S, n, simplex = True, tol = 1e-7):
     """
@@ -613,14 +587,14 @@ def find_all_plus_omega_zero_solutions(S, n, simplex = True, tol = 1e-7):
         where `S_k` is the list of k-cells (each cell is a list of vertex indices).
         For simplicial complexes, this corresponds to the full combinatorial structure.
     n : int
-        Target cell dimension (0 <= n <= len(S)−1) at which to compute the roots.
+        Target cell dimension (0 <= n <= len(S)-1) at which to compute the roots.
     simplex : bool, optional
         If True, interpret `S` as a simplicial complex and generate boundary matrices
         via the formal combinatorial definition (`generate_all_B_by_definition`).
         If False, compute boundary matrices via the generalized geometric algorithm
         (`compute_boundary_matrices`).
     tol : float, optional
-        Numerical tolerance for root acceptance. Default is 1e−7.
+        Numerical tolerance for root acceptance. Default is 1e-7.
 
     Returns
     -------
@@ -635,20 +609,20 @@ def find_all_plus_omega_zero_solutions(S, n, simplex = True, tol = 1e-7):
     the lower boundary matrix B0 is empty, and only `psi_plus` variables are active.
 
     The function automatically builds the relevant partitions:
-    all n−1 and n+1 cells are included in the "all-plus" configuration
+    all n-1 and n+1 cells are included in the "all-plus" configuration
     (`S_plus = all`, `S_minus = empty set`).
 
     Each identified solution is further analyzed for:
-        – **stability**, using `check_stable_jacobians`, which verifies that all
+        - stability, using `check_stable_jacobians`, which verifies that all
           non-zero eigenvalues of J1 and J2 are negative..
-        – **positivity**, using `check_cos_theta`, ensuring all cos(theta) > 0.
+        - positivity, using `check_cos_theta`, ensuring all cos(theta) > 0.
 
     Output includes:
-        – the (z_plus, z_minus) winding vectors,
-        – zeta_plus and zeta_minus,
-        – stability and positivity,
-        – full eigenvalue spectra of the Jacobians,
-        – and cos(theta) values for each component.
+        - the (z_plus, z_minus) winding vectors,
+        - zeta_plus and zeta_minus,
+        - stability and positivity,
+        - full eigenvalue spectra of the Jacobians,
+        - and cos(theta) values for each component.
     """
     if simplex == True:
         B = generate_all_B_by_definition(S)
@@ -661,15 +635,15 @@ def find_all_plus_omega_zero_solutions(S, n, simplex = True, tol = 1e-7):
 
     if n == 0:
         # n=0: vertices are the 0-cells, edges are (n+1)-cells
-        B_n = np.zeros((0, len(S[0])))                # no lower boundary
+        B_n = np.zeros((0, len(S[0]))) # no lower boundary
         C_n = np.zeros((0, 0))  # shape is (0, number of vertices)
         K_n = np.zeros((0, 0))
-        B_np1 = B[0]              # vertex->edge incidence
+        B_np1 = B[0] # vertex->edge incidence
         C_np1 = compute_kernel_sp(B_np1)  
-        K_np1 = np.eye(B_np1.T.shape[0])  # identity in edge space
+        K_np1 = np.eye(B_np1.T.shape[0]) # identity in edge space
 
         # Partition vertices into plus/minus (these are n=0 cells)
-        S_nm1_plus, S_nm1_minus = [], []  # there is no S_{n-1}
+        S_nm1_plus, S_nm1_minus = [], [] # there is no S_{n-1}
         S_np1_plus = [i for i in range(0, len(S[1]))]
         S_np1_minus = []
 
@@ -684,29 +658,27 @@ def find_all_plus_omega_zero_solutions(S, n, simplex = True, tol = 1e-7):
     print(f'n = {n},\nC_n = {C_n},\nC_np1 = {C_np1}')
 
     if n == 0:
-        num_n_cells = len(S[0])   # vertices
+        num_n_cells = len(S[0])   # nodes
     else:
         num_n_cells = B_n.shape[1]
     omega = np.zeros(num_n_cells)
     roots = []
 
-    found_roots = find_what_works_nd(S_nm1_plus, S_nm1_minus, S_np1_plus, S_np1_minus, 
-                                         B_n, B_np1, K_n, K_np1, C_n, C_np1, tol = tol, omega=omega)
+    found_roots = find_what_works_nd(S_nm1_plus, S_nm1_minus, S_np1_plus, S_np1_minus, B_n, B_np1, K_n, K_np1, C_n, C_np1,
+                                     tol = tol, omega=omega)
         
     if found_roots:
         roots.extend(found_roots)
     else:
         print(f"No roots found for n = {n}.")
     
-    #check stability of all roots, and cosine(theta) positivity
-    stable_indices, all_J1s, all_J2s = check_stable_jacobians(
-        roots, omega, B_n, B_np1, K_n, K_np1, C_n, C_np1,
-        S_nm1_plus, S_nm1_minus, S_np1_plus, S_np1_minus
-    )   
-    positive_indices, all_CT1s, all_CT2s = check_cos_theta(roots, omega, B_n, B_np1, K_n, K_np1, C_n, C_np1,
-        S_nm1_plus, S_nm1_minus, S_np1_plus, S_np1_minus)   
+    # Check stability of all roots, and cosine(theta) positivity
+    stable_indices, all_J1s, all_J2s = check_stable_jacobians(roots, omega, B_n, B_np1, K_n, K_np1, C_n, C_np1, S_nm1_plus, S_nm1_minus,
+                                                            S_np1_plus, S_np1_minus)   
+    positive_indices, all_CT1s, all_CT2s = check_cos_theta(roots, omega, B_n, B_np1, K_n, K_np1, C_n, C_np1, S_nm1_plus, S_nm1_minus,
+                                                           S_np1_plus, S_np1_minus)   
     
-    #make something that prints for each root the eigenvalues of J1, J2, cos(theta) values and whether the root is stable and positive
+    # Print for each root the eigenvalues of J1, J2, cos(theta) values and whether the root is stable and positive
     for idx, (z_plus, z_minus, zeta_plus, zeta_minus) in enumerate(roots):
         is_stable = idx in stable_indices
         is_positive = idx in positive_indices

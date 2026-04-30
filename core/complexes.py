@@ -3,7 +3,7 @@
 Boundary, Kernel, and Coupling Matrix Construction
 =========================================================
 
-This module defines low-level algebraic–topological routines for constructing
+This module defines low-level algebraic-topological routines for constructing
 boundary operators, kernel matrices, and coupling matrices for both
 simplicial and general cell complexes.
 
@@ -44,7 +44,7 @@ the dynamical solvers in `core.dynamics`.
 import numpy as np
 import sympy as sp
 
-from itertools import combinations, product
+from itertools import product
 
 
 def generate_all_B_by_definition(S):
@@ -66,15 +66,15 @@ def generate_all_B_by_definition(S):
     -------
     B : list[np.ndarray]
         Sequence of integer-valued boundary matrices
-        B = [B1, B2, …, Bn], where each Bk maps oriented k-simplices
-        to their oriented (k–1)-dimensional faces.
-        Columns correspond to k-simplices, rows to (k–1)-simplices.
+        B = [B1, B2, ..., Bn], where each Bk maps oriented k-simplices
+        to their oriented (k-1)-dimensional faces.
+        Columns correspond to k-simplices, rows to (k-1)-simplices.
 
     Notes
     -----
     The orientation of each simplex is defined by its vertex ordering.
     Signs alternate according to the standard algebraic-topological rule
-    (–1)^i for the *i*-th omitted vertex.
+    (-1)^i for the *i*-th omitted vertex.
 
     This routine is valid only for **simplicial complexes**, i.e. those
     whose k-cells are (k+1)-vertex simplices.  
@@ -121,9 +121,9 @@ def compute_boundary_matrices(S):
     ----------
     S : list[list[list[int]]]
         Nested list of cells for each dimension:
-        - S[0] : 0-cells (vertices)
+        - S[0] : 0-cells (nodes)
         - S[1] : 1-cells (edges)
-        - S[2] : 2-cells (faces, e.g. polygons)
+        - S[2] : 2-cells (faces)
         - S[3] : 3-cells (volumes)
         Each cell is represented by an ordered list of vertex indices.
 
@@ -134,21 +134,21 @@ def compute_boundary_matrices(S):
     boundary_matrices : list[np.ndarray]
         Sequence of integer-valued boundary matrices
         B = [B1, B2, ..., Bn], where each B_k maps oriented k-cells
-        to their oriented (k–1)-dimensional boundaries.
+        to their oriented (k-1)-dimensional boundaries.
 
     Notes
     -----
     For k = 1 (edges -> vertices):  the orientation is taken directly from
-    the vertex ordering of each edge.  The signs (–1)ⁱ reproduce the usual
+    the vertex ordering of each edge.  The signs (-1)^i reproduce the usual
     alternating convention for 1-simplices.
 
     For k = 2 (faces -> edges):  each face is treated as a closed polygon.
     Its oriented boundary is traced cyclically along successive vertex pairs
     (a, b), assigning +1 if the edge orientation matches that of the face,
-    and –1 otherwise.
+    and -1 otherwise.
 
     For k = 3 (volumes -> faces):  orientation is determined by matching each
-    face of the volume against the global list of 2-cells.  A sign of +1 (–1)
+    face of the volume against the global list of 2-cells.  A sign of +1 (-1)
      is assigned depending on whether the local orientation of the face agrees
      (or disagrees) with that of the volume.
 
@@ -188,7 +188,7 @@ def compute_boundary_matrices(S):
 
             elif k == 2: # k = 2 
                 # B2: from faces to edges
-                for i in range(len(simplex)): #walk along the edges of the polygon
+                for i in range(len(simplex)): # walk along the edges of the polygon
                     a = simplex[i]
                     b = simplex[(i + 1) % len(simplex)]  # wrap around to close the face
                     edge = (a, b)
